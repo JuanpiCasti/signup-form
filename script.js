@@ -14,8 +14,8 @@ const usuariosProhibidos = ["admin"]
 
 function fetchCommonPasswords() {
     return fetch("https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/Common-Credentials/10-million-password-list-top-10000.txt")
-        .then(response => response.text())
-        .then(data => {
+    .then(response => response.text())
+    .then(data => {
             const passwords = data.trim().split('\n');
             return passwords; // devuelve el array de contraseñas
         })
@@ -25,16 +25,27 @@ function fetchCommonPasswords() {
         });
 }
 
-function usuarioPermitido() {
-    return !usuariosProhibidos.includes(usuario.value)
+    
+fetchCommonPasswords().then(passwords => {
+    formulario.addEventListener('submit', event => {
+        if(checkBadPassword(passwords, password.value)) {
+            event.preventDefault()
+            password.classList.add("is-invalid")
+            feedbackPassword.innerText = "Esa contraseña es insegura."
+        }
+    })
+})
+
+function usuarioPermitido(usuarioIngresado) {
+    return !usuariosProhibidos.includes(usuarioIngresado)
 }
 
-function checkBadPassword(badPasswords) {
-    return badPasswords.includes(password.value)
+function checkBadPassword(badPasswords, passwordIngresada) {
+    return badPasswords.includes(passwordIngresada)
 }
 
-function checkDifferentPasswords() {
-    return password.value != passwordRepeat.value
+function checkDifferent(passwordIngresada, passwordRepeatIngresada) {
+    return passwordIngresada != passwordRepeatIngresada
 }
 
 function verificarCampoLleno(event, element, feedbackElement) {
@@ -50,24 +61,34 @@ function cleanFeedback(event, feedback) {
     feedback.innerText = ""
 }
 
-formulario.addEventListener('submit', event => {
+formulario.addEventListener("submit", (event) => {
     verificarCampoLleno(event, usuario, feedbackUsuario)
-    verificarCampoLleno(event, password, feedbackPassword)
-    verificarCampoLleno(event, passwordRepeat, feedbackPasswordRepeat)
+})
 
-    if(!usuarioPermitido()) {
+formulario.addEventListener("submit", (event) => {
+    verificarCampoLleno(event, password, feedbackPassword)
+})
+
+formulario.addEventListener("submit", (event) => {
+    verificarCampoLleno(event, passwordRepeat, feedbackPasswordRepeat)
+})
+
+formulario.addEventListener('submit', event => {
+    if(!usuarioPermitido(usuario.value)) {
         event.preventDefault()
         usuario.classList.add("is-invalid")
         feedbackUsuario.innerText = "Ese usuario no esta permitido."
     }
+})
 
-    if(checkDifferentPasswords()) {
+formulario.addEventListener('submit', event => {
+    if(checkDifferent(password.value, passwordRepeat.value)) {
         event.preventDefault()
         passwordRepeat.classList.add("is-invalid")
         feedbackPasswordRepeat.innerHTML = "Por favor repita la contraseña."
     }
-
 })
+
 
 usuario.addEventListener("input", (event) => {
     cleanFeedback(event, feedbackUsuario)
@@ -79,15 +100,4 @@ passwordRepeat.addEventListener("input", (event) => {
     cleanFeedback(event, feedbackPasswordRepeat)
 })
 
-fetchCommonPasswords().then(passwords => {
-    formulario.addEventListener('submit', event => {
-        if(checkBadPassword(passwords)) {
-            event.preventDefault()
-            password.classList.add("is-invalid")
-            passwordRepeat.classList.add("is-invalid")
-            feedbackPassword.innerText = "Esa contraseña es insegura."
-            feedbackPasswordRepeat.innerText = "Esa contraseña es insegura."
-        }
-    })
-})
 
